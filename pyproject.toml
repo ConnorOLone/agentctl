@@ -1,0 +1,17 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentctl"
+version = "0.1.0"
+description = "Git worktree bootstrapper for agentic workflows."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+dependencies = [
+    "typer>=0.9",
+]
+
+[project.scripts]
+agentctl = "agentctl.cli:app"

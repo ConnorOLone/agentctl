@@ -1,84 +1,94 @@
 # agentctl
 
-A small CLI to bootstrap parallel Git worktrees for "agentic" development workflows.
+Git worktree bootstrapper for agentic workflows. Sets up isolated worktrees so
+multiple AI agents (or humans) can work in the same repo without stepping on
+each other.
 
 ## Install
 
-### One-liner (recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/<YOUR_GH_USER>/agentctl/main/install.sh | bash
+# recommended — isolated install, available globally
+pipx install .
+
+# or editable dev install
+pip install -e .
 ```
 
-### Manual Installation
-
-1. Clone this repository
-2. Make the script executable:
-   ```bash
-   chmod +x agentctl
-   ```
-3. Optionally, add it to your PATH:
-   ```bash
-   sudo ln -s "$(pwd)/agentctl" /usr/local/bin/agentctl
-   ```
+After install, `agentctl` is available on your PATH.
 
 ## Usage
 
+Run from anywhere inside a git repository.
+
 ### Initialize worktrees
 
-Create multiple worktrees for parallel work:
-
 ```bash
-agentctl init [--count N] [--prefix agent] [--workdir worktrees] [--base origin/main]
+agentctl init                          # 2 worktrees, default settings
+agentctl init --count 4                # 4 worktrees
+agentctl init -n 3 --prefix ai        # branches: ai/task-1 .. ai/task-3
+agentctl init --base origin/develop    # branch off develop instead of main
 ```
 
-Options:
-- `--count N`: Number of worktrees to create (default: 2)
-- `--prefix`: Branch name prefix (default: "agent")
-- `--workdir`: Directory for worktrees (default: "worktrees")
-- `--base`: Base branch reference (default: origin/main or origin/HEAD)
-
-Example:
-```bash
-agentctl init --count 3
-```
-
-This creates:
-- `worktrees/task-1` with branch `agent/task-1`
-- `worktrees/task-2` with branch `agent/task-2`
-- `worktrees/task-3` with branch `agent/task-3`
+Creates `worktrees/task-1 .. task-N` under the repo root, each on a new branch
+`<prefix>/task-i` based on the resolved base ref.
 
 ### List worktrees
 
 ```bash
-agentctl list
+agentctl list          # human-readable
+agentctl list --json   # structured JSON output
 ```
 
-### Remove a worktree
-
-```bash
-agentctl rm <name>
-```
-
-Example:
-```bash
-agentctl rm task-2
-```
-
-### Clean stale worktrees
+### Clean stale references
 
 ```bash
 agentctl clean
 ```
 
-## Why Worktrees?
+### Remove a worktree
 
-Git worktrees allow you to have multiple working directories checked out from the same repository simultaneously. This is useful for:
+```bash
+agentctl rm task-2                  # resolves to worktrees/task-2
+agentctl rm worktrees/task-2        # explicit path
+```
 
-- Working on multiple features in parallel
-- Quickly testing different branches without stashing
-- Running CI/CD checks on one branch while developing on another
-- Code review without disrupting your current work
+### Version
+
+```bash
+agentctl --version
+```
+
+## Agent mode
+
+Set `AGENTCTL_MODE=agent` to restrict the CLI to read-only commands. Mutating
+commands (`init`, `rm`, `clean`) are denied with a clear error.
+
+```bash
+export AGENTCTL_MODE=agent
+agentctl list        # allowed
+agentctl init        # denied: 'init' is user-only
+```
+
+## Test plan
+
+Manual smoke tests — run from a git repo with a remote called `origin`.
+
+| # | Test | Command | Expected |
+|---|------|---------|----------|
+| 1 | Init default | `agentctl init` | Creates `worktrees/task-1`, `worktrees/task-2` |
+| 2 | Init custom count | `agentctl init -n 3 --prefix ai` | Creates 3 worktrees with `ai/task-*` branches |
+| 3 | Init skip existing | Run init twice | Second run skips already-created worktrees |
+| 4 | Init branch collision | Create branch `agent/task-1` manually, then init | Error about existing branch |
+| 5 | List human | `agentctl list` | Shows `git worktree list` output |
+| 6 | List JSON | `agentctl list --json` | Valid JSON with repo_root and worktrees array |
+| 7 | Clean | `agentctl clean` | Prunes and shows list |
+| 8 | Remove | `agentctl rm task-1` | Removes worktree, prunes, shows list |
+| 9 | Remove missing | `agentctl rm nonexistent` | Clean error message |
+| 10 | Agent mode deny | `AGENTCTL_MODE=agent agentctl init` | "Denied: 'init' is user-only" |
+| 11 | Agent mode allow | `AGENTCTL_MODE=agent agentctl list` | Works normally |
+| 12 | Outside git repo | `cd /tmp && agentctl list` | "not inside a git repository" |
+| 13 | Version | `agentctl --version` | Prints `agentctl 0.1.0` |
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT
