@@ -8,7 +8,16 @@ __pycache__/
 dist/
 build/
 *.egg
+*.so
 .venv/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.hypothesis/
 
 # macOS
 .DS_Store
@@ -25,3 +34,7 @@ build/
 # IDE
 .vscode/
 .idea/
+
+# Project documentation
+CLAUDE.md
+IMPLEMENTATION.md
