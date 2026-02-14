@@ -1,0 +1,19 @@
+# Worktrees directory
+worktrees/
+
+# macOS
+.DS_Store
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# IDE
+.vscode/
+.idea/
