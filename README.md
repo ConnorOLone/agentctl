@@ -8,10 +8,10 @@ each other.
 
 ```bash
 # recommended — isolated install, available globally
-pipx install .
+uv tool install .
 
 # or editable dev install
-pip install -e .
+uv pip install -e .
 ```
 
 After install, `agentctl` is available on your PATH.

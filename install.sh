@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO_RAW_URL="https://raw.githubusercontent.com/ConnorOLone/agentctl/main/agentctl"
-INSTALL_DIR="${INSTALL_DIR:-$HOME/bin}"
+# Install agentctl using uv
+# Requires uv to be installed: https://docs.astral.sh/uv/
 
-mkdir -p "$INSTALL_DIR"
-curl -fsSL "$REPO_RAW_URL" -o "$INSTALL_DIR/agentctl"
-chmod +x "$INSTALL_DIR/agentctl"
-
-if ! echo "$PATH" | tr ':' '\n' | grep -qx "$INSTALL_DIR"; then
-  echo "Installed to $INSTALL_DIR but it is not on PATH."
-  echo "Add this to your shell config (e.g. ~/.zshrc):"
-  echo "  export PATH=\"$INSTALL_DIR:\$PATH\""
-else
-  echo "Installed agentctl to $INSTALL_DIR/agentctl"
+if ! command -v uv &> /dev/null; then
+  echo "Error: uv is not installed."
+  echo "Install uv first: curl -LsSf https://astral.sh/uv/install.sh | sh"
+  exit 1
 fi
+
+echo "Installing agentctl with uv..."
+uv tool install git+https://github.com/ConnorOLone/agentctl.git
+
+echo "✓ agentctl installed successfully"
+echo "Run 'agentctl --version' to verify installation"
